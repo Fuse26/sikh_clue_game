@@ -270,6 +270,7 @@
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
     <div id="loginScreen">
         <h2>Game Master Login</h2>
         <input type="password" id="passwordInput" placeholder="Enter password">
@@ -277,14 +278,16 @@
         <p id="loginError"></p>
     </div>
 
+    <!-- Dashboard Content (Hidden by default until login) -->
     <div id="dashboardContent" class="container">
         <h1>Game Master Dashboard</h1>
         <div id="initialInstruction">
-            <p>Ensure your Node.js server is running (open terminal, navigate to your project folder, type `node server.js`).</p>
-            <p>Teams should open `http://localhost:3000/detective_notebook.html` in their browsers.</p>
+            <p>Ensure your Node.js server is running (deployed on Render).</p>
+            <p>Teams should open `https://cluedetective.akalusa.me` in their browsers.</p>
             <p>This dashboard will automatically update as teams progress.</p>
         </div>
 
+        <!-- Correct Answer Setting Section -->
         <div class="correct-answer-section">
             <h2>Set Correct Answer</h2>
             <select id="correctSuspect">
@@ -301,10 +304,12 @@
             <p id="currentCorrectAnswer">Current Answer: Not Set</p>
         </div>
 
+        <!-- Teams Overview Display Section -->
         <div id="teamsOverview">
             <p style="grid-column: 1 / -1; text-align: center; color: #777;">Waiting for teams to connect...</p>
         </div>
 
+        <!-- Accusation Popup -->
         <div id="accusationPopup">
             <h2 id="popupTitle"></h2>
             <p id="accusationTeamName"></p>
@@ -315,14 +320,17 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO client library - loaded from CDN, but connects to your backend subdomain -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Explicitly connect to your local server on port 3000.
-        const socket = io('http://localhost:3000'); 
+        // Connect to your Node.js backend hosted on Render.
+        // You MUST UPDATE "https://api.akalusa.me" with the actual subdomain
+        // you choose for your backend server in Phase 4.
+        const socket = io('https://clueapi.akalusa.me'); // Placeholder: UPDATE IN PHASE 5
 
         // --- Configuration ---
         // !!! IMPORTANT: CHANGE THIS PASSWORD to something secure for your mela !!!
-        const GM_PASSWORD = "your_secret_password"; 
+        const GM_PASSWORD = "@00Ss00@"; 
 
         // --- DOM Elements ---
         const loginScreen = document.getElementById('loginScreen');
@@ -360,8 +368,7 @@
                 loginScreen.style.display = 'none';
                 dashboardContent.style.display = 'block';
                 loginError.innerText = '';
-                // Simple session storage to keep logged in if tab is refreshed.
-                sessionStorage.setItem('gmLoggedIn', 'true');
+                sessionStorage.setItem('gmLoggedIn', 'true'); // Persist login state
             } else {
                 loginError.innerText = 'Incorrect password. Please try again.';
             }
@@ -373,8 +380,8 @@
                 loginScreen.style.display = 'none';
                 dashboardContent.style.display = 'block';
             } else {
-                loginScreen.style.display = 'flex'; // Display login screen.
-                dashboardContent.style.display = 'none'; // Hide dashboard.
+                loginScreen.style.display = 'flex';
+                dashboardContent.style.display = 'none';
             }
 
             // Populate dropdowns for setting the correct answer.
@@ -397,11 +404,13 @@
             const tool = document.getElementById('correctTool').value;
 
             if (suspect && location && tool) {
+                // Use a simple custom confirmation box instead of alert/confirm for better UX.
+                // For this example, we'll use browser's confirm for brevity in code.
                 const confirmation = confirm(`Confirm correct answer:\nWho: ${suspect}\nWhere: ${location}\nTool: ${tool}`);
                 if (confirmation) {
                     const answer = { suspect, location, tool };
-                    socket.emit('set_correct_answer', answer); // Emit to server
-                    updateCorrectAnswerDisplay(answer); // Update local display
+                    socket.emit('set_correct_answer', answer);
+                    updateCorrectAnswerDisplay(answer);
                 }
             } else {
                 alert('Please select a Suspect, Location, and Tool for the correct answer.');
