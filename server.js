@@ -2,27 +2,19 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-// path is NOT needed here as Express will NOT serve static files.
-// Render and Netlify will handle static file serving.
 
 const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.IO with CORS settings.
-// This is crucial for allowing your frontend (on clueadmin/cluedetective subdomains)
-// to connect to this backend (on api.akalusa.me).
-// The `origin` array below contains placeholder values.
-// You MUST UPDATE these in Phase 5 after you get your actual live URLs.
+// IMPORTANT: You MUST update the 'origin' array below in Phase 5
+// after you get your actual live URLs from Render and Netlify.
+// Example: origin: ["https://clueadmin.akalusa.me", "https://cluedetective.akalusa.me", "https://clueapi.akalusa.me"]
 const io = new Server(server, {
     cors: {
-        origin: [
-            "https://clueadmin.akalusa.me",
-            "https://cluedetective.akalusa.me",
-            "https://clueapi.akalusa.me" // Your backend's own subdomain
-        ],
+        origin: ["https://clueadmin.akalusa.me", "https://cluedetective.akalusa.me", "https://clueapi.akalusa.me"], // Placeholder: UPDATE IN PHASE 5
         methods: ["GET", "POST"]
     }
-});
 });
 
 // Render will automatically set a PORT environment variable for your application.
@@ -30,7 +22,6 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3000;
 
 // --- Game State Variables (These will be stored in server memory) ---
-// This is where the server keeps track of all teams' progress and the correct answer.
 let teamStates = {}; // Stores the current state of each team's notebook
 let accusations = {}; // Stores details of any made accusations
 let correctAnswer = { // Stores the correct solution set by the Game Master
@@ -40,12 +31,11 @@ let correctAnswer = { // Stores the correct solution set by the Game Master
 };
 
 // --- Socket.IO Connection Handling ---
-// This block defines what happens when clients (notebooks, GM dashboard) connect
-// and send/receive data.
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
 
-    // When a new client connects, send them the current game state and correct answer.
+    // When a new client connects (either a notebook or the GM dashboard),
+    // send them the current game state and correct answer.
     socket.emit('initial_state', { teamStates, accusations, correctAnswer });
 
     // Listen for updates from a team's notebook (e.g., checkbox clicks, log entries).
@@ -56,13 +46,13 @@ io.on('connection', (socket) => {
             // Broadcast the update to all connected clients (especially the GM dashboard).
             io.emit('team_state_updated', { teamId, state });
             console.log(`State updated for team: ${state.teamName || teamId}`);
-        
+        }
     });
 
     // Listen for the Game Master setting the correct answer.
     socket.on('set_correct_answer', (answer) => {
         correctAnswer = answer; // Update the server's stored correct answer
-        // Notify all connected clients (useful if multiple GMs are present, or just for consistency).
+        // Notify all connected clients (useful if multiple GMs are present).
         io.emit('correct_answer_updated', correctAnswer);
         console.log("Correct answer set:", correctAnswer);
     });
@@ -96,5 +86,5 @@ io.on('connection', (socket) => {
 // This will be the port provided by Render (process.env.PORT).
 server.listen(PORT, () => {
     console.log(`Socket.IO server running on port ${PORT}`);
-    console.log(`This server is designed to be deployed on a PaaS like Render.`);
+    console.log(`This server is designed to be deployed on Render.`);
 });
