@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
             // Broadcast the update to all connected clients (especially the GM dashboard).
             io.emit('team_state_updated', { teamId, state });
             console.log(`State updated for team: ${state.teamName || teamId}`);
-        }
+        
     });
 
     // Listen for the Game Master setting the correct answer.
