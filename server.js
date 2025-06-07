@@ -1,26 +1,36 @@
-// server.js
+// Filename: server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const path = require('path');
+// path is NOT needed here as Express will NOT serve static files.
+// Render and Netlify will handle static file serving.
 
 const app = express();
 const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS settings.
+// This is crucial for allowing your frontend (on clueadmin/cluedetective subdomains)
+// to connect to this backend (on api.akalusa.me).
+// The `origin` array below contains placeholder values.
+// You MUST UPDATE these in Phase 5 after you get your actual live URLs.
 const io = new Server(server, {
     cors: {
-        // Allows connections from localhost:3000, which is where your HTML files will be served from.
-        origin: "http://localhost:3000",
+        origin: [
+            "https://clueadmin.akalusa.me",
+            "https://cluedetective.akalusa.me",
+            "https://clueapi.akalusa.me" // Your backend's own subdomain
+        ],
         methods: ["GET", "POST"]
     }
 });
+});
 
+// Render will automatically set a PORT environment variable for your application.
+// We use process.env.PORT to correctly pick up that port.
 const PORT = process.env.PORT || 3000;
 
-// Serve static files (your HTML, CSS, JS) from the current directory.
-// This allows your browser to access detective_notebook.html and game_master_dashboard.html.
-app.use(express.static(path.join(__dirname)));
-
-// --- Game State Variables (stored in server memory) ---
+// --- Game State Variables (These will be stored in server memory) ---
+// This is where the server keeps track of all teams' progress and the correct answer.
 let teamStates = {}; // Stores the current state of each team's notebook
 let accusations = {}; // Stores details of any made accusations
 let correctAnswer = { // Stores the correct solution set by the Game Master
@@ -30,19 +40,20 @@ let correctAnswer = { // Stores the correct solution set by the Game Master
 };
 
 // --- Socket.IO Connection Handling ---
+// This block defines what happens when clients (notebooks, GM dashboard) connect
+// and send/receive data.
 io.on('connection', (socket) => {
     console.log(`A user connected: ${socket.id}`);
 
-    // When a new client connects (either a notebook or the GM dashboard),
-    // send them the current state of the game.
+    // When a new client connects, send them the current game state and correct answer.
     socket.emit('initial_state', { teamStates, accusations, correctAnswer });
 
-    // Listen for updates from a team's notebook.
+    // Listen for updates from a team's notebook (e.g., checkbox clicks, log entries).
     socket.on('update_notebook_state', (data) => {
         const { teamId, state } = data;
         if (teamId && state) {
             teamStates[teamId] = state; // Update the server's record for this team
-            // Broadcast the update to all connected clients (especially the GM dashboard)
+            // Broadcast the update to all connected clients (especially the GM dashboard).
             io.emit('team_state_updated', { teamId, state });
             console.log(`State updated for team: ${state.teamName || teamId}`);
         }
@@ -51,7 +62,7 @@ io.on('connection', (socket) => {
     // Listen for the Game Master setting the correct answer.
     socket.on('set_correct_answer', (answer) => {
         correctAnswer = answer; // Update the server's stored correct answer
-        // Notify all connected clients (useful if multiple GMs are present)
+        // Notify all connected clients (useful if multiple GMs are present, or just for consistency).
         io.emit('correct_answer_updated', correctAnswer);
         console.log("Correct answer set:", correctAnswer);
     });
@@ -82,8 +93,8 @@ io.on('connection', (socket) => {
 });
 
 // Start the server listening on the defined port.
+// This will be the port provided by Render (process.env.PORT).
 server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Access Detective Notebooks at: http://localhost:${PORT}/detective_notebook.html`);
-    console.log(`Access Game Master Dashboard at: http://localhost:${PORT}/game_master_dashboard.html`);
+    console.log(`Socket.IO server running on port ${PORT}`);
+    console.log(`This server is designed to be deployed on a PaaS like Render.`);
 });
