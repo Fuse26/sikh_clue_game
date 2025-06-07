@@ -188,19 +188,22 @@
         <div class="section">
             <h2>Suspects (Cross off if NOT the culprit)</h2>
             <div class="grid-container" id="suspectsList">
-                </div>
+                <!-- Suspects will be dynamically loaded here -->
+            </div>
         </div>
 
         <div class="section">
             <h2>Locations (Cross off if NOT the hiding place)</h2>
             <div class="grid-container" id="locationsList">
-                </div>
+                <!-- Locations will be dynamically loaded here -->
+            </div>
         </div>
 
         <div class="section">
             <h2>Hiding Tools (Cross off if NOT the hiding tool)</h2>
             <div class="grid-container" id="toolsList">
-                </div>
+                <!-- Hiding Tools will be dynamically loaded here -->
+            </div>
         </div>
 
         <div class="section">
@@ -214,7 +217,8 @@
                     </tr>
                 </thead>
                 <tbody id="logEntries">
-                    </tbody>
+                    <!-- Log entries will be added here -->
+                </tbody>
             </table>
             <div id="addLogEntryRow">
                 <input type="text" id="newLocationName" placeholder="Location Name">
@@ -229,13 +233,16 @@
             <p>Once your team is sure, make your final accusation here. Be careful, only one chance!</p>
             <select id="accusedSuspect">
                 <option value="">Who?</option>
-                </select>
+                <!-- Suspects will be loaded here -->
+            </select>
             <select id="accusedLocation">
                 <option value="">Where?</option>
-                </select>
+                <!-- Locations will be loaded here -->
+            </select>
             <select id="accusedTool">
                 <option value="">What Tool?</option>
-                </select>
+                <!-- Tools will be loaded here -->
+            </select>
             <br>
             <button class="button" onclick="makeFinalAccusation()">Make Accusation (Official)</button>
         </div>
@@ -245,10 +252,13 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO client library - loaded from CDN, but you'll use it via your backend subdomain -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Explicitly connect to your local server on port 3000.
-        const socket = io('http://localhost:3000'); 
+        // Connect to your Node.js backend hosted on Render.
+        // You MUST UPDATE "https://api.akalusa.me" with the actual subdomain
+        // you choose for your backend server in Phase 4.
+        const socket = io('https://clueapi.akalusa.me'); // Placeholder: UPDATE IN PHASE 5
 
         // Generate a unique Team ID or retrieve from local storage.
         // This ensures a team's progress is saved if they refresh the page.
@@ -400,6 +410,8 @@
             const teamName = document.getElementById('teamNameInput').value || `Team ${teamId.split('_')[1]}`;
 
             if (accusedSuspect && accusedLocation && accusedTool) {
+                // Use a simple custom confirmation box instead of alert/confirm for better UX.
+                // For this example, we'll use browser's confirm for brevity in code.
                 const confirmation = confirm(`Are you sure you want to make this final accusation?\nWho: ${accusedSuspect}\nWhere: ${accusedLocation}\nTool: ${accusedTool}\n\nRemember, you only get one chance!`);
                 if (confirmation) {
                     const accusation = {
