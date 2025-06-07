@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Master Dashboard - Sikhi Clue Challenge</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9f0f6;
+            color: #333;
+            margin: 20px;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Login Form Styling */
+        #loginScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        #loginScreen h2 {
+            color: #007bff;
+            margin-bottom: 25px;
+            border-bottom: none;
+        }
+
+        #loginScreen input[type="password"] {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80%;
+            max-width: 300px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        #loginScreen button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s ease;
+        }
+
+        #loginScreen button:hover {
+            background-color: #0056b3;
+        }
+
+        #loginError {
+            color: #dc3545;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* Dashboard Content (Initially Hidden) */
+        #dashboardContent {
+            display: none;
+        }
+
+        /* Correct Answer Section Styling */
+        .correct-answer-section {
+            background-color: #e6f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #99d6ff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .correct-answer-section h2 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .correct-answer-section select, .correct-answer-section input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 5px;
+            width: calc(30% - 20px);
+            min-width: 150px;
+        }
+
+        #currentCorrectAnswer {
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #currentCorrectAnswer span {
+            color: #28a745;
+        }
+
+        /* Teams Overview Display Styling */
+        #teamsOverview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .team-card {
+            background-color: #f8fcfd;
+            border: 1px solid #cceeff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .team-card h3 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-card h3 span {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .progress-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .progress-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .progress-list li.checked {
+            color: #888;
+            text-decoration: line-through;
+        }
+
+        .progress-list li::before {
+            content: '☐';
+            margin-right: 8px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .progress-list li.checked::before {
+            content: '✅';
+            color: #28a745;
+        }
+
+        .log-entry {
+            background-color: #eaf6ff;
+            border-left: 3px solid #007bff;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .log-entry strong {
+            color: #0056b3;
+        }
+
+        /* Accusation Popup Styling */
+        #accusationPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            border: 5px solid;
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        #accusationPopup.correct { border-color: #28a745; }
+        #accusationPopup.incorrect { border-color: #dc3545; }
+
+        #accusationPopup h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: none;
+        }
+        #accusationPopup.correct h2 { color: #28a745; }
+        #accusationPopup.incorrect h2 { color: #dc3545; }
+
+        #accusationPopup p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        #accusationPopup button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        #accusationPopup button:hover {
+            background-color: #0056b3;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Initial Instruction */
+        #initialInstruction {
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #ffffe0;
+            border: 1px solid #ffd700;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen">
+        <h2>Game Master Login</h2>
+        <input type="password" id="passwordInput" placeholder="Enter password">
+        <button onclick="attemptLogin()">Login</button>
+        <p id="loginError"></p>
+    </div>
+
+    <div id="dashboardContent" class="container">
+        <h1>Game Master Dashboard</h1>
+        <div id="initialInstruction">
+            <p>Ensure your Node.js server is running (open terminal, navigate to your project folder, type `node server.js`).</p>
+            <p>Teams should open `http://localhost:3000/detective_notebook.html` in their browsers.</p>
+            <p>This dashboard will automatically update as teams progress.</p>
+        </div>
+
+        <div class="correct-answer-section">
+            <h2>Set Correct Answer</h2>
+            <select id="correctSuspect">
+                <option value="">Who?</option>
+            </select>
+            <select id="correctLocation">
+                <option value="">Where?</option>
+            </select>
+            <select id="correctTool">
+                <option value="">What Tool?</option>
+            </select>
+            <br>
+            <button class="button" onclick="setCorrectAnswer()">Set Answer</button>
+            <p id="currentCorrectAnswer">Current Answer: Not Set</p>
+        </div>
+
+        <div id="teamsOverview">
+            <p style="grid-column: 1 / -1; text-align: center; color: #777;">Waiting for teams to connect...</p>
+        </div>
+
+        <div id="accusationPopup">
+            <h2 id="popupTitle"></h2>
+            <p id="accusationTeamName"></p>
+            <p>Who: <strong id="accusedSuspectDisplay"></strong></p>
+            <p>Where: <strong id="accusedLocationDisplay"></strong></p>
+            <p>Tool: <strong id="accusedToolDisplay"></strong></p>
+            <button onclick="closeAccusationPopup()">Dismiss</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Explicitly connect to your local server on port 3000.
+        const socket = io('http://localhost:3000'); 
+
+        // --- Configuration ---
+        // !!! IMPORTANT: CHANGE THIS PASSWORD to something secure for your mela !!!
+        const GM_PASSWORD = "your_secret_password"; 
+
+        // --- DOM Elements ---
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+
+        const teamsOverviewDiv = document.getElementById('teamsOverview');
+        const accusationPopup = document.getElementById('accusationPopup');
+        const popupTitle = document.getElementById('popupTitle');
+        const accusationTeamNameDisplay = document.getElementById('accusationTeamName');
+        const accusedSuspectDisplay = document.getElementById('accusedSuspectDisplay');
+        const accusedLocationDisplay = document.getElementById('accusedLocationDisplay');
+        const accusedToolDisplay = document.getElementById('accusedToolDisplay');
+        const currentCorrectAnswerDisplay = document.getElementById('currentCorrectAnswer');
+
+        // --- Game Data Definitions ---
+        // These lists define the possible suspects, locations, and tools.
+        const suspects = [
+            "Seva Singh", "Simran Kaur", "Dharam Singh",
+            "Kirat Kaur", "Bhakti Singh", "Giani Preet Singh"
+        ];
+        const locations = [
+            "Main Darbar Hall", "Langar Hall", "Shoe-seva Area",
+            "Nishan Sahib Flagpole", "Gurudwara Library", "Kids' Activity Room"
+        ];
+        const tools = [
+            "Karahi (Cooking Pot)", "Rumaal (Cloth)", "Tabla/Harmonium",
+            "Jhaaru (Broom)", "Pothi (Text)", "Steel Glass"
+        ];
+
+        // --- Password Protection Logic ---
+        function attemptLogin() {
+            if (passwordInput.value === GM_PASSWORD) {
+                loginScreen.style.display = 'none';
+                dashboardContent.style.display = 'block';
+                loginError.innerText = '';
+                // Simple session storage to keep logged in if tab is refreshed.
+                sessionStorage.setItem('gmLoggedIn', 'true');
+            } else {
+                loginError.innerText = 'Incorrect password. Please try again.';
+            }
+        }
+
+        // Checks login status when the page loads.
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('gmLoggedIn') === 'true') {
+                loginScreen.style.display = 'none';
+                dashboardContent.style.display = 'block';
+            } else {
+                loginScreen.style.display = 'flex'; // Display login screen.
+                dashboardContent.style.display = 'none'; // Hide dashboard.
+            }
+
+            // Populate dropdowns for setting the correct answer.
+            const populateDropdown = (dropdownId, options) => {
+                const dropdown = document.getElementById(dropdownId);
+                options.forEach(option => {
+                    dropdown.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+            };
+            populateDropdown('correctSuspect', suspects);
+            populateDropdown('correctLocation', locations);
+            populateDropdown('correctTool', tools);
+        });
+
+        // --- Correct Answer Management ---
+        // Sends the Game Master's chosen correct answer to the server.
+        function setCorrectAnswer() {
+            const suspect = document.getElementById('correctSuspect').value;
+            const location = document.getElementById('correctLocation').value;
+            const tool = document.getElementById('correctTool').value;
+
+            if (suspect && location && tool) {
+                const confirmation = confirm(`Confirm correct answer:\nWho: ${suspect}\nWhere: ${location}\nTool: ${tool}`);
+                if (confirmation) {
+                    const answer = { suspect, location, tool };
+                    socket.emit('set_correct_answer', answer); // Emit to server
+                    updateCorrectAnswerDisplay(answer); // Update local display
+                }
+            } else {
+                alert('Please select a Suspect, Location, and Tool for the correct answer.');
+            }
+        }
+
+        // Updates the display showing the currently set correct answer.
+        function updateCorrectAnswerDisplay(answer) {
+            if (answer.suspect && answer.location && answer.tool) {
+                currentCorrectAnswerDisplay.innerHTML = `Current Answer: <span>${answer.suspect}</span>, <span>${answer.location}</span>, <span>${answer.tool}</span>`;
+            } else {
+                currentCorrectAnswerDisplay.innerText = 'Current Answer: Not Set';
+            }
+        }
+
+        // --- Team Progress Display ---
+        // Renders or updates a single team's progress card on the dashboard.
+        function renderTeamCard(teamId, state) {
+            const teamName = state.teamName || `Team ${teamId.split('_')[1]}`;
+            let teamCard = document.getElementById(`team-card-${teamId}`);
+
+            if (!teamCard) {
+                teamCard = document.createElement('div');
+                teamCard.id = `team-card-${teamId}`;
+                teamCard.className = 'team-card';
+                teamsOverviewDiv.appendChild(teamCard);
+            }
+
+            // Generate HTML for suspects, locations, and tools based on checked status.
+            let suspectsHtml = '<ul>';
+            suspects.forEach(s => {
+                const checkboxId = `suspect-${s.replace(/\s/g, '-').replace(/[()]/g, '')}`;
+                const isChecked = state.checkboxes[checkboxId] ? 'checked' : '';
+                suspectsHtml += `<li class="${isChecked}">${s}</li>`;
+            });
+            suspectsHtml += '</ul>';
+
+            let locationsHtml = '<ul>';
+            locations.forEach(l => {
+                const checkboxId = `location-${l.replace(/\s/g, '-').replace(/[()]/g, '')}`;
+                const isChecked = state.checkboxes[checkboxId] ? 'checked' : '';
+                locationsHtml += `<li class="${isChecked}">${l}</li>`;
+            });
+            locationsHtml += '</ul>';
+
+            let toolsHtml = '<ul>';
+            tools.forEach(t => {
+                const checkboxId = `tool-${t.replace(/\s/g, '-').replace(/[()]/g, '')}`;
+                const isChecked = state.checkboxes[checkboxId] ? 'checked' : '';
+                toolsHtml += `<li class="${isChecked}">${t}</li>`;
+            });
+            toolsHtml += '</ul>';
+
+            // Generate HTML for witness log entries.
+            let logEntriesHtml = '';
+            if (state.logEntries && state.logEntries.length > 0) {
+                state.logEntries.forEach(entry => {
+                    logEntriesHtml += `
+                        <div class="log-entry">
+                            <strong>${entry.locationName}:</strong> ${entry.witnessSignature}
+                            ${entry.clueReceived ? ` (Clue: ${entry.clueReceived})` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                logEntriesHtml = '<p style="font-style: italic; font-size: 0.9em; color: #999;">No visits logged yet.</p>';
+            }
+
+            // Update the content of the team card.
+            teamCard.innerHTML = `
+                <h3>${teamName} <span>(${teamId})</span></h3>
+                <div class="progress-list">
+                    <h4>Suspects Cleared:</h4>${suspectsHtml}
+                    <h4>Locations Cleared:</h4>${locationsHtml}
+                    <h4>Tools Cleared:</h4>${toolsHtml}
+                </div>
+                <h4>Witness Log (${state.logEntries ? state.logEntries.length : 0} entries):</h4>
+                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px; background-color: #fdfdfd;">
+                    ${logEntriesHtml}
+                </div>
+            `;
+            // Hide the initial instruction once at least one team connects.
+            document.getElementById('initialInstruction').style.display = 'none';
+        }
+
+        // --- Socket.IO Event Handlers (for real-time communication) ---
+
+        // Called when the GM dashboard first connects to the server.
+        socket.on('initial_state', (data) => {
+            teamsOverviewDiv.innerHTML = '';
+            if (Object.keys(data.teamStates).length === 0) {
+                 teamsOverviewDiv.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #777;">Waiting for teams to connect...</p>';
+            }
+            // Render all existing team states.
+            for (const teamId in data.teamStates) {
+                renderTeamCard(teamId, data.teamStates[teamId]);
+            }
+            // Update the correct answer display.
+            updateCorrectAnswerDisplay(data.correctAnswer);
+
+            // Show any pending accusations (e.g., if GM refreshed the page).
+            for (const teamId in data.accusations) {
+                 showAccusationPopup(data.accusations[teamId].teamName, data.accusations[teamId].accusation, data.accusations[teamId].isCorrect);
+            }
+        });
+
+        // Called when any team's notebook state is updated.
+        socket.on('team_state_updated', (data) => {
+            renderTeamCard(data.teamId, data.state);
+        });
+
+        // Called when the correct answer is set (either by this GM or another).
+        socket.on('correct_answer_updated', (answer) => {
+            updateCorrectAnswerDisplay(answer);
+        });
+
+        // Called when a team makes an accusation.
+        socket.on('accusation_made', (data) => {
+            showAccusationPopup(data.teamName, data.accusation, data.isCorrect);
+        });
+
+        // --- Accusation Popup Functions ---
+        // Displays the accusation pop-up with details and correctness.
+        function showAccusationPopup(teamName, accusation, isCorrect) {
+            accusationTeamNameDisplay.innerText = `Team: ${teamName}`;
+            accusedSuspectDisplay.innerText = accusation.suspect;
+            accusedLocationDisplay.innerText = accusation.location;
+            accusedToolDisplay.innerText = accusation.tool;
+
+            if (isCorrect) {
+                popupTitle.innerText = "✅ CORRECT ACCUSATION! ✅";
+                accusationPopup.className = 'correct'; // Assigns green styling.
+            } else {
+                popupTitle.innerText = "❌ INCORRECT ACCUSATION! ❌";
+                accusationPopup.className = 'incorrect'; // Assigns red styling.
+            }
+            accusationPopup.style.display = 'block';
+        }
+
+        // Hides the accusation pop-up.
+        function closeAccusationPopup() {
+            accusationPopup.style.display = 'none';
+            accusationPopup.className = ''; // Remove styling class for next use.
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sikhi Clue Challenge: Detective Notebook</title>
+    <style>
+        /* General body and container styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 20px;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        /* Section layout */
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        /* Checkbox item styling */
+        .item-checkbox {
+            display: flex;
+            align-items: center;
+            background-color: #eaf6ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #d0e8ff;
+            transition: background-color 0.2s ease;
+        }
+
+        .item-checkbox:hover {
+            background-color: #d0e8ff;
+        }
+
+        .item-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.3);
+        }
+
+        /* Witness Log Table styling */
+        #witnessLogTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        #witnessLogTable th, #witnessLogTable td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        #witnessLogTable th {
+            background-color: #f2f2f2;
+            color: #555;
+        }
+
+        #addLogEntryRow {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #addLogEntryRow input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Button styling */
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            background-color: #218838;
+        }
+
+        .print-button {
+            background-color: #6c757d;
+            margin-left: 10px;
+        }
+        .print-button:hover {
+            background-color: #5a6268;
+        }
+
+        /* Final Accusation section styling */
+        .accusation-section {
+            background-color: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #cce5ff;
+            text-align: center;
+        }
+
+        .accusation-section select, .accusation-section input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 5px;
+            width: calc(33% - 20px);
+            min-width: 150px;
+        }
+
+        #teamNameInput {
+            font-size: 1.2em;
+            padding: 10px;
+            width: 80%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Print-specific styles to hide interactive elements */
+        @media print {
+            .button, #addLogEntryRow, .accusation-section button {
+                display: none;
+            }
+            body {
+                background-color: #fff;
+                margin: 0;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 10px;
+                margin: 0;
+            }
+            input[type="checkbox"] {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sikhi Clue Challenge: Detective Notebook</h1>
+        <p style="text-align: center; font-style: italic;">Unravel the mystery of the Lost Artefact!</p>
+
+        <div class="section">
+            <h2>Team Information</h2>
+            <label for="teamNameInput">Team Name:</label>
+            <input type="text" id="teamNameInput" placeholder="Enter your team name">
+            <p style="font-size: 0.9em; color: #666;">Your Team ID: <strong id="teamIdDisplay">Loading...</strong> (Keep this for tracking)</p>
+        </div>
+
+        <div class="section">
+            <h2>Suspects (Cross off if NOT the culprit)</h2>
+            <div class="grid-container" id="suspectsList">
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>Locations (Cross off if NOT the hiding place)</h2>
+            <div class="grid-container" id="locationsList">
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>Hiding Tools (Cross off if NOT the hiding tool)</h2>
+            <div class="grid-container" id="toolsList">
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>Witness Visit Log</h2>
+            <table id="witnessLogTable">
+                <thead>
+                    <tr>
+                        <th>Location Name Visited</th>
+                        <th>Witness Signature</th>
+                        <th>Clue Received (Optional)</th>
+                    </tr>
+                </thead>
+                <tbody id="logEntries">
+                    </tbody>
+            </table>
+            <div id="addLogEntryRow">
+                <input type="text" id="newLocationName" placeholder="Location Name">
+                <input type="text" id="newWitnessSignature" placeholder="Witness Signature">
+                <input type="text" id="newClueReceived" placeholder="Clue (e.g., 'Not Seva Singh')">
+                <button class="button" onclick="addLogEntry()">Add Log Entry</button>
+            </div>
+        </div>
+
+        <div class="section accusation-section">
+            <h2>Final Accusation</h2>
+            <p>Once your team is sure, make your final accusation here. Be careful, only one chance!</p>
+            <select id="accusedSuspect">
+                <option value="">Who?</option>
+                </select>
+            <select id="accusedLocation">
+                <option value="">Where?</option>
+                </select>
+            <select id="accusedTool">
+                <option value="">What Tool?</option>
+                </select>
+            <br>
+            <button class="button" onclick="makeFinalAccusation()">Make Accusation (Official)</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="button print-button" onclick="window.print()">Print Detective Notebook</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Explicitly connect to your local server on port 3000.
+        const socket = io('http://localhost:3000'); 
+
+        // Generate a unique Team ID or retrieve from local storage.
+        // This ensures a team's progress is saved if they refresh the page.
+        let teamId = localStorage.getItem('sikhClueTeamId');
+        if (!teamId) {
+            teamId = 'team_' + Math.random().toString(36).substr(2, 9); // Simple unique ID
+            localStorage.setItem('sikhClueTeamId', teamId);
+        }
+        document.getElementById('teamIdDisplay').innerText = teamId;
+
+        // --- Game Data Definitions ---
+        // These lists define the possible suspects, locations, and tools for the mystery.
+        const suspects = [
+            "Seva Singh", "Simran Kaur", "Dharam Singh",
+            "Kirat Kaur", "Bhakti Singh", "Giani Preet Singh"
+        ];
+        const locations = [
+            "Main Darbar Hall", "Langar Hall", "Shoe-seva Area",
+            "Nishan Sahib Flagpole", "Gurudwara Library", "Kids' Activity Room"
+        ];
+        const tools = [
+            "Karahi (Cooking Pot)", "Rumaal (Cloth)", "Tabla/Harmonium",
+            "Jhaaru (Broom)", "Pothi (Text)", "Steel Glass"
+        ];
+
+        // --- UI Population Functions ---
+        // Dynamically creates the checkboxes and dropdown options based on the game data.
+        function populateLists() {
+            const createCheckboxItem = (idPrefix, name, type) => `
+                <div class="item-checkbox">
+                    <input type="checkbox" id="${idPrefix}-${name.replace(/\s/g, '-').replace(/[()]/g, '')}" value="${name}" data-type="${type}">
+                    <label for="${idPrefix}-${name.replace(/\s/g, '-').replace(/[()]/g, '')}">${name}</label>
+                </div>
+            `;
+
+            const createOptionItem = (name) => `<option value="${name}">${name}</option>`;
+
+            const suspectsList = document.getElementById('suspectsList');
+            const accusedSuspectDropdown = document.getElementById('accusedSuspect');
+            suspects.forEach(s => {
+                suspectsList.innerHTML += createCheckboxItem('suspect', s, 'suspect');
+                accusedSuspectDropdown.innerHTML += createOptionItem(s);
+            });
+
+            const locationsList = document.getElementById('locationsList');
+            const accusedLocationDropdown = document.getElementById('accusedLocation');
+            locations.forEach(l => {
+                locationsList.innerHTML += createCheckboxItem('location', l, 'location');
+                accusedLocationDropdown.innerHTML += createOptionItem(l);
+            });
+
+            const toolsList = document.getElementById('toolsList');
+            const accusedToolDropdown = document.getElementById('accusedTool');
+            tools.forEach(t => {
+                toolsList.innerHTML += createCheckboxItem('tool', t, 'tool');
+                accusedToolDropdown.innerHTML += createOptionItem(t);
+            });
+
+            // Load any previously saved state for this team.
+            loadState();
+        }
+
+        // Adds a new entry to the witness log table.
+        function addLogEntry() {
+            const locationName = document.getElementById('newLocationName').value;
+            const witnessSignature = document.getElementById('newWitnessSignature').value;
+            const clueReceived = document.getElementById('newClueReceived').value;
+
+            if (locationName && witnessSignature) {
+                const tableBody = document.getElementById('logEntries');
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${locationName}</td>
+                    <td>${witnessSignature}</td>
+                    <td>${clueReceived}</td>
+                `;
+                // Clear input fields for the next entry.
+                document.getElementById('newLocationName').value = '';
+                document.getElementById('newWitnessSignature').value = '';
+                document.getElementById('newClueReceived').value = '';
+
+                saveState(); // Save and send the updated state to the server.
+            } else {
+                alert('Please enter Location Name and Witness Signature.');
+            }
+        }
+
+        // --- State Management & Server Communication ---
+        // Gathers the current state of the notebook (team name, checkboxes, log entries)
+        // and sends it to the server. Also saves to local storage.
+        function saveState() {
+            const state = {
+                teamName: document.getElementById('teamNameInput').value,
+                checkboxes: {},
+                logEntries: []
+            };
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                state.checkboxes[checkbox.id] = checkbox.checked;
+            });
+
+            document.querySelectorAll('#logEntries tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                state.logEntries.push({
+                    locationName: cols[0].innerText,
+                    witnessSignature: cols[1].innerText,
+                    clueReceived: cols[2].innerText
+                });
+            });
+
+            localStorage.setItem('detectiveNotebookState_' + teamId, JSON.stringify(state));
+            socket.emit('update_notebook_state', { teamId: teamId, state: state });
+        }
+
+        // Loads a previously saved state from local storage.
+        function loadState() {
+            const savedState = localStorage.getItem('detectiveNotebookState_' + teamId);
+            if (savedState) {
+                const state = JSON.parse(savedState);
+
+                document.getElementById('teamNameInput').value = state.teamName || '';
+
+                for (const id in state.checkboxes) {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = state.checkboxes[id];
+                    }
+                }
+
+                const tableBody = document.getElementById('logEntries');
+                tableBody.innerHTML = '';
+                state.logEntries.forEach(entry => {
+                    const newRow = tableBody.insertRow();
+                    newRow.innerHTML = `
+                        <td>${entry.locationName}</td>
+                        <td>${entry.witnessSignature}</td>
+                        <td>${entry.clueReceived}</td>
+                    `;
+                });
+            }
+            saveState(); // After loading, send the initial state to the server.
+        }
+
+        // Handles a team's final accusation.
+        function makeFinalAccusation() {
+            const accusedSuspect = document.getElementById('accusedSuspect').value;
+            const accusedLocation = document.getElementById('accusedLocation').value;
+            const accusedTool = document.getElementById('accusedTool').value;
+            const teamName = document.getElementById('teamNameInput').value || `Team ${teamId.split('_')[1]}`;
+
+            if (accusedSuspect && accusedLocation && accusedTool) {
+                const confirmation = confirm(`Are you sure you want to make this final accusation?\nWho: ${accusedSuspect}\nWhere: ${accusedLocation}\nTool: ${accusedTool}\n\nRemember, you only get one chance!`);
+                if (confirmation) {
+                    const accusation = {
+                        suspect: accusedSuspect,
+                        location: accusedLocation,
+                        tool: accusedTool
+                    };
+                    socket.emit('make_accusation', { teamId: teamId, teamName: teamName, accusation: accusation });
+                    alert(`Accusation sent to Game Master! Go to the Game Master's table for official verification.`);
+                    // Disable further accusations or modifications after one is made.
+                    document.querySelector('.accusation-section button').disabled = true;
+                    document.getElementById('accusedSuspect').disabled = true;
+                    document.getElementById('accusedLocation').disabled = true;
+                    document.getElementById('accusedTool').disabled = true;
+                }
+            } else {
+                alert('Please select a Suspect, Location, and Tool for your accusation.');
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLists();
+            document.getElementById('teamNameInput').addEventListener('input', saveState);
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', saveState);
+            });
+
+            // Listen for initial state from server (for consistency).
+            socket.on('initial_state', (data) => {
+                // You could add logic here to reconcile server state with local if needed.
+            });
+        });
+    </script>
+</body>
+</html>
